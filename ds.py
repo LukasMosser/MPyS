@@ -8,38 +8,11 @@ from numba import jit, autojit, cuda
 import bottleneck as bn
 import threading
 
-def output_to_png(filename, simulation_grid):
-    fig, ax = plt.subplots(1, 1, figsize=(13, 13))
-    ax.imshow(simulation_grid, cmap='Greys',  interpolation='nearest')
-    for item in ax.get_xticklabels():
-        item.set_fontsize(28)
-    for item in ax.get_yticklabels():
-        item.set_fontsize(28)
-
-    fig.canvas.draw()
-    fig.savefig(filename)
-    plt.close()
-
-def import_dat_file(file_path):
-    with open(file_path, "r") as f:
-        img = []
-        for i, row in enumerate(f):
-            if i == 0:
-                row_vals = row.split(" ")
-                nx = int(row_vals[0])
-                ny = int(row_vals[1])
-                nz = int(row_vals[2])
-            elif i >2:
-                #img.append(int(row.split(" ")[-1].strip("\n")))
-                val = int(row.split(" ")[0].strip("\n"))
-                img.append(val)
-        img = np.array(img).reshape(ny, nx).astype(np.float32)
-    return img
-
+from mpys.utils import output_to_png, import_sgems_dat_file
+from mpys.paths import random_path
 
 def create_new_empty_simulation_grid(nx, ny):
     return np.ones((nx, ny)).astype(np.int)-2
-
 
 def compute_distance_unweighted(training_image_event, simulation_grid_event):
     sum = 0
@@ -610,24 +583,28 @@ def direct_sampling_algorithm(simulation_grid, training_image, path, traced_path
 
         traced_path.append(path_index)
         if i % 10000 == 0:
-            output_to_png("output/direct_sampling_strebelle_"+str(i)+".png", simulation_grid)
+            fig, ax = plt.subplots(1, 1, figsize=(13, 13))
+            output_to_png("output/direct_sampling_strebelle_"+str(i)+".png", simulation_grid, ax, fig)
             output_to_png("output/input.png", training_image)
     return simulation_grid
 
 
 def main():
     np.random.seed(43)
-    training_img = import_dat_file("bangladesh.sgems.txt").astype(np.int32)
-    simulation_grid = create_new_empty_simulation_grid(100, 500).astype(np.int32)
-    directed_path = create_random_path(simulation_grid)
+    training_img = import_sgems_dat_file("data/bangladesh.sgems.txt").astype(np.int32)
+    simulation_grid = create_new_empty_simulation_grid(100, 100).astype(np.int32)
+    directed_path = random_path(simulation_grid)
 
-    support = directed_path.pop()
+    support = directed_path[0]
+    directed_path = directed_path[1::]
+    
     simulation_grid[support] = 1
     traced_path = [support]
 
     simulated_grid = direct_sampling_algorithm(simulation_grid, training_img, directed_path, traced_path, n_neighbors=50)
 
-    output_to_png("output/direct_sampling_bangladesh_final.png", simulated_grid)
+    fig, ax = plt.subplots(1, 1, figsize=(13, 13))
+    output_to_png("output/direct_sampling_bangladesh_final.png", simulated_grid, ax, fig)
 
 
 if __name__ == "__main__":
