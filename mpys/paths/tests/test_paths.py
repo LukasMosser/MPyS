@@ -22,7 +22,6 @@ class TestPaths(unittest.TestCase):
         self.assertListEqual(range(dimensions[0]), x_set)
         self.assertListEqual(range(dimensions[1]), y_set)
 
-
     def test_random_path_3d(self):
         dimensions = (10, 11, 12)
         path_3d = mpys.random_path(dimensions)

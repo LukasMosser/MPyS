@@ -589,19 +589,28 @@ def direct_sampling_algorithm(simulation_grid, training_image, path, traced_path
     return simulation_grid
 
 
+from mpys.ds import DirectSampling
+
 def main():
     np.random.seed(43)
     training_img = import_sgems_dat_file("data/bangladesh.sgems.txt").astype(np.int32)
     simulation_grid = create_new_empty_simulation_grid(100, 100).astype(np.int32)
-    directed_path = random_path(simulation_grid)
+    directed_path = random_path(simulation_grid.shape)
 
-    support = directed_path[0]
-    directed_path = directed_path[1::]
-    
+    support = tuple(directed_path[0])
     simulation_grid[support] = 1
+
+    directed_path = directed_path[1::]
+
     traced_path = [support]
 
-    simulated_grid = direct_sampling_algorithm(simulation_grid, training_img, directed_path, traced_path, n_neighbors=50)
+
+    direct_sampling = DirectSampling(training_img, simulation_grid, directed_path, traced_path,
+                                     n_neighbors=30, threshold=0.1, sampling_fraction=0.1)
+
+    simulated_grid = direct_sampling.run()
+
+    #simulated_grid = direct_sampling_algorithm(simulation_grid, training_img, directed_path, traced_path, n_neighbors=50)
 
     fig, ax = plt.subplots(1, 1, figsize=(13, 13))
     output_to_png("output/direct_sampling_bangladesh_final.png", simulated_grid, ax, fig)
