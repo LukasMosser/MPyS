@@ -31,9 +31,9 @@ class NearestNeighborSearch(object):
         self.nearest_neighbor_ids = None
 
     def find(self, current_node, traced_path):
-        traced_path_arr = np.array(traced_path) #TODOOOOO!!!!! work around this, this sucks
-        self.distances = np.zeros(len(traced_path_arr), dtype=np.int64)
-        self.nearest_neighbor_search(current_node, traced_path_arr, self.distances)
+
+        self.distances = np.zeros(len(traced_path), dtype=np.int64)
+        self.nearest_neighbor_search(current_node, traced_path, self.distances)
 
         self.nearest_neighbor_ids = btn.argpartition(self.distances, kth=self.n_neighbors)
 

@@ -594,7 +594,7 @@ from mpys.ds import DirectSampling
 def main():
     np.random.seed(43)
     training_img = import_sgems_dat_file("data/bangladesh.sgems.txt").astype(np.int32)
-    simulation_grid = create_new_empty_simulation_grid(100, 100).astype(np.int32)
+    simulation_grid = create_new_empty_simulation_grid(250, 400).astype(np.int32)
     directed_path = random_path(simulation_grid.shape)
 
     support = tuple(directed_path[0])
@@ -606,7 +606,7 @@ def main():
 
 
     direct_sampling = DirectSampling(training_img, simulation_grid, directed_path, traced_path,
-                                     n_neighbors=30, threshold=0.1, sampling_fraction=0.1)
+                                     n_neighbors=30, threshold=0.05, sampling_fraction=0.1)
 
     simulated_grid = direct_sampling.run()
 
