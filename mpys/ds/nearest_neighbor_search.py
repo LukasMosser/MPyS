@@ -26,7 +26,7 @@ def compute_distances_kd_tree(current_node, traced_path, n_neighbors):
     return tree.query(current_node, k=n_neighbors)
 
 @jit(nopython=True, nogil=True)
-def shell_search(current_node, n_neighbors, shape, image):
+def shell_search_jit(current_node, n_neighbors, shape, image):
     nx, ny = current_node
     shapea, shapeb = shape
     max_shape = None
@@ -72,6 +72,21 @@ def shell_search(current_node, n_neighbors, shape, image):
             break
     return node_ids
 
+def brute_force_search(current_node, traced_path, n_neighbors, simulation_grid):
+    distances = np.zeros(len(traced_path), dtype=np.int64)
+    distances = compute_distances_brute_force_2d(current_node, traced_path, distances)
+    nearest_neighbor_ids = btn.argpartition(distances, kth=n_neighbors)
+
+
+    nearest_point_ids = nearest_neighbor_ids[0:n_neighbors]
+
+    nearest_points = [traced_path[i] for i in nearest_point_ids]
+
+    return nearest_points
+
+def shell_search(current_node, traced_path, n_neighbors, simulation_grid):
+
+    return shell_search_jit(current_node, n_neighbors, simulation_grid.shape, simulation_grid)
 
 class NearestNeighborSearch(object):
     def __init__(self, nearest_neighbor_method=shell_search, n_neighbors=30):
@@ -85,10 +100,6 @@ class NearestNeighborSearch(object):
 
     def find(self, current_node, traced_path, simulation_grid):
 
-        #self.distances = np.zeros(len(traced_path), dtype=np.int64)
-        self.nodes = self.nearest_neighbor_search(current_node, self.n_neighbors,
-                                     simulation_grid.shape, simulation_grid)#, traced_path, self.distances)
+        self.nodes = self.nearest_neighbor_search(current_node, traced_path, self.n_neighbors, simulation_grid)
+
         return self.nodes
-        #self.nearest_neighbor_ids = btn.argpartition(self.distances, kth=self.n_neighbors)
-        #
-        #return self.nearest_neighbor_ids

@@ -8,7 +8,7 @@ from tqdm import tqdm
 class DirectSampling(object):
     def __init__(self, training_image, simulation_grid, simulation_path, traced_path,
                  n_neighbors=30, threshold=0.1, sampling_fraction=0.2):
-
+        from nearest_neighbor_search import shell_search, brute_force_search
         self.training_image = training_image
         self.simulation_grid = simulation_grid
         self.simulation_path = simulation_path
@@ -18,7 +18,7 @@ class DirectSampling(object):
         self.threshold = threshold
         self.sampling_fraction = sampling_fraction
 
-        self.nearest_neighbor_search = NearestNeighborSearch(n_neighbors=self.n_neighbors)
+        self.nearest_neighbor_search = NearestNeighborSearch(nearest_neighbor_method=shell_search, n_neighbors=self.n_neighbors)
 
         self.event_scanner = DirectSampler(self.training_image, self.sampling_fraction)
 
@@ -29,9 +29,7 @@ class DirectSampling(object):
         if len(nearest_point_indices) < self.n_neighbors:
             return 1
 
-        #nearest_point_ids = #nearest_point_indices[0:self.n_neighbors]
-
-        nearest_points = nearest_point_indices#[self.traced_path[i] for i in nearest_point_ids]
+        nearest_points = nearest_point_indices
 
         lag_vectors = self.compute_lag_vectors(current_node, nearest_points).astype(np.int64)
 
