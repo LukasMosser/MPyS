@@ -24,18 +24,18 @@ class DirectSampling(object):
 
     def get_node_value(self, current_node):
 
-        nearest_point_indices = self.nearest_neighbor_search.find(current_node, self.traced_path)
+        nearest_point_indices = self.nearest_neighbor_search.find(current_node, self.traced_path, self.simulation_grid)
 
         if len(nearest_point_indices) < self.n_neighbors:
             return 1
 
-        nearest_point_ids = nearest_point_indices[0:self.n_neighbors]
+        #nearest_point_ids = #nearest_point_indices[0:self.n_neighbors]
 
-        nearest_points = [self.traced_path[i] for i in nearest_point_ids]
+        nearest_points = nearest_point_indices#[self.traced_path[i] for i in nearest_point_ids]
 
-        lag_vectors = self.compute_lag_vectors(current_node, nearest_points)
+        lag_vectors = self.compute_lag_vectors(current_node, nearest_points).astype(np.int64)
 
-        nearest_points = np.array(nearest_points)
+        nearest_points = np.array(nearest_points, dtype=np.int64)
 
         simulation_grid_event = self.get_values_at_node_indices(self.simulation_grid, nearest_points)
 
@@ -68,5 +68,10 @@ class DirectSampling(object):
 
     @staticmethod
     def get_values_at_node_indices(grid, nodes):
-        x_cords, y_cords = nodes.T
-        return grid[[x_cords, y_cords]]
+        if len(grid.shape) == 2:
+            x_cords, y_cords = nodes.T
+            return grid[[x_cords, y_cords]]
+        elif len(grid.shape) == 3:
+            x_cords, y_cords, z_cords = nodes.T
+            return grid[[x_cords, y_cords, z_cords]]
+

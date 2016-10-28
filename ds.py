@@ -590,31 +590,39 @@ def direct_sampling_algorithm(simulation_grid, training_image, path, traced_path
 
 
 from mpys.ds import DirectSampling
+import tifffile
 
 def main():
-    np.random.seed(43)
-    training_img = import_sgems_dat_file("data/bangladesh.sgems.txt").astype(np.int32)
-    simulation_grid = create_new_empty_simulation_grid(250, 400).astype(np.int32)
+    np.random.seed(42)
+    training_img = import_sgems_dat_file("data/ti_strebelle_125_125_1.dat").astype(np.int32).T
+    #training_img = tifffile.imread("data/beadpack_100.tif")
+
+    simulation_grid = create_new_empty_simulation_grid(training_img.shape[0], training_img.shape[1]).astype(np.int32)
     directed_path = random_path(simulation_grid.shape)
+    N_population = 50
+    traced_path = []
+    for i in range(N_population):
+        support = tuple(directed_path[i])
+        simulation_grid[support] = np.random.choice([0, 1])
 
-    support = tuple(directed_path[0])
-    simulation_grid[support] = 1
+        traced_path.append(support)
 
-    directed_path = directed_path[1::]
-
-    traced_path = [support]
-
-
+    fig, ax = plt.subplots(1, 1, figsize=(13, 13))
+    output_to_png("output/conditioned.png", simulation_grid, ax, fig)
+    directed_path = directed_path[N_population::]
     direct_sampling = DirectSampling(training_img, simulation_grid, directed_path, traced_path,
-                                     n_neighbors=30, threshold=0.05, sampling_fraction=0.1)
+                                     n_neighbors=3, threshold=0.4, sampling_fraction=0.5)
 
     simulated_grid = direct_sampling.run()
 
+    training_img_vector = training_img.reshape(training_img.shape[0]*training_img.shape[1], 1)
+    simulated_grid_vector = simulated_grid.reshape(simulated_grid.shape[0]*simulated_grid.shape[1], 1)
+
     #simulated_grid = direct_sampling_algorithm(simulation_grid, training_img, directed_path, traced_path, n_neighbors=50)
 
-    fig, ax = plt.subplots(1, 1, figsize=(13, 13))
-    output_to_png("output/direct_sampling_bangladesh_final.png", simulated_grid, ax, fig)
 
+    output_to_png("output/direct_sampling_bangladesh_final.png", simulated_grid, ax, fig)
+    #output_to_png("output/input.png", training_img, ax, fig)
 
 if __name__ == "__main__":
     import platform

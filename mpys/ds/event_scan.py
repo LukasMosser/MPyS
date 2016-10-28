@@ -23,10 +23,15 @@ class DirectSampler(object):
 
     @staticmethod
     def get_search_window_bounds(lag_vectors):
-        x, y = lag_vectors.T
-        a, b, c, d = x.min(), x.max(), y.min(), y.max()
+        if lag_vectors.shape[1] == 2:
+            x, y = lag_vectors.T
+            a, b, c, d = x.min(), x.max(), y.min(), y.max()
 
-        return a, b, c, d
+            return a, b, c, d
+        else:
+            x, y, z = lag_vectors.T
+            a, b, c, d, e, f = x.min(), x.max(), y.min(), y.max(), z.min(), z.max()
+            return a, b, c, d, e, f
 
 
 @jit(nopython=True, nogil=True)
@@ -51,11 +56,11 @@ def find_event_in_ti(training_image, lag_vectors, simulation_grid_event,
             event_distance = sum / event_length
 
             # if we find a perfect match, take it straight away
-            if event_distance == 0.0 or event_distance < threshold:
+            if event_distance == 0.0 or event_distance <= threshold:
                 return training_image[i, j]
 
             # if the current distance is between threshold and d_min set as new d_min, continue search
-            elif threshold < event_distance < d_min:
+            elif threshold < event_distance <= d_min:
                 d_min = event_distance
                 event_min = training_image[i, j]
 
